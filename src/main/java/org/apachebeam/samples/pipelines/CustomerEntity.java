@@ -1,4 +1,4 @@
-package org.apachebeam.samples.pipeline1;
+package org.apachebeam.samples.pipelines;
 
 public class CustomerEntity {
 

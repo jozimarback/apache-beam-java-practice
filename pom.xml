@@ -34,7 +34,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>org.apachebeam.samples.pipeline1.LocalFilePipeline</mainClass>
+                            <mainClass>org.apachebeam.samples.pipelines.LocalFilePipeline</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
