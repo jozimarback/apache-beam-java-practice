@@ -34,7 +34,9 @@
             <artifactId>beam-sdks-java-io-parquet</artifactId>
             <version>2.46.0</version>
         </dependency>
+
     </dependencies>
+
     <build>
         <plugins>
             <plugin>
