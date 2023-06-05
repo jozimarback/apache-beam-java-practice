@@ -13,6 +13,8 @@ import org.apache.beam.sdk.transforms.MapElements;
 import org.apache.beam.sdk.transforms.SimpleFunction;
 import org.apache.beam.sdk.values.PCollection;
 
+import java.util.Map;
+
 class BeamCustUtil{
     public static Schema getSchema(){
          String SCHEMA_STRING =
@@ -53,11 +55,39 @@ class ConvertCsvToGeneric extends SimpleFunction<String, GenericRecord>{
         return record;
     }
 }
+
+class PrintElem extends SimpleFunction<GenericRecord, Void>{
+    @Override
+    public Void apply(GenericRecord input) {
+        System.out.println("SessionId: "+input.get("SessionId"));
+        System.out.println("UserId: "+input.get("UserId"));
+        System.out.println("UserName: "+input.get("UserName"));
+        System.out.println("VideoId: "+input.get("VideoId"));
+        System.out.println("Duration: "+input.get("Duration"));
+        System.out.println("StartedTime: "+input.get("StartedTime"));
+        System.out.println("Sex: "+input.get("Sex"));
+        return null;
+    }
+}
+
 public class ParquetPipeline {
     public static void main(String[] args) {
         Pipeline p = Pipeline.create();
-
         Schema schema = BeamCustUtil.getSchema();
+
+        createParquet(p, schema);
+        readParquet(p, schema);
+
+        p.run();
+    }
+
+    private static void readParquet(Pipeline p, Schema schema) {
+        PCollection<GenericRecord> pOutput = p.apply(ParquetIO.read(schema).from("c:\\...parquet"));
+        pOutput.apply(MapElements.via(new PrintElem()));
+    }
+
+    private static void createParquet(Pipeline p, Schema schema) {
+
         PCollection<GenericRecord> pOutput = p
             .apply(TextIO.read().from("C:\\..."))
             .apply(MapElements.via(new ConvertCsvToGeneric()))
@@ -65,6 +95,5 @@ public class ParquetPipeline {
 
         pOutput.apply(FileIO.<GenericRecord>write().via(ParquetIO.sink(schema)).to("C:\\..")
                 .withNumShards(1).withSuffix(".parquet"));
-        p.run();
     }
 }
