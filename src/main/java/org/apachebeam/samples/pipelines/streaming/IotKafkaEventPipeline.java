@@ -36,7 +36,8 @@ public class IotKafkaEventPipeline {
                     }
                 }))
                 .apply(Count.perElement())
-                .apply(JdbcIO.<KV<String, Long>write().withDataSourceConfiguration(JdbcIO.DataSourceConfiguration
+
+                .apply(JdbcIO.<KV<String, Long>>write().withDataSourceConfiguration(JdbcIO.DataSourceConfiguration
                         .create("com.mysql.jdbc.Driver", "jdbc:mysql://127.0.0.1:3306/beam?useSSL=false")
                         .withUsername("root").withPassword("root"))
                         .withStatement("insert into event values(?,?)")
@@ -47,12 +48,13 @@ public class IotKafkaEventPipeline {
                                 preparedStatement.setLong(2, element.getValue());
                             }
                         }))
-                .apply(ParDo.of(new DoFn<KV<String, Long>, Void>() {
-                   @ProcessElement
-                   public void processElement(ProcessContext c){
-                       System.out.println(c.element());
-                   }
-                }));
+//                .apply(ParDo.of(new DoFn<KV<String, Long>, Void>() {
+//                    @ProcessElement
+//                    public void processElement(ProcessContext c){
+//                        System.out.println(c.element());
+//                    }
+//                }))
+        ;
 
         p.run();
     }
