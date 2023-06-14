@@ -1,6 +1,7 @@
 package org.apachebeam.samples.pipelines.streaming;
 
 import org.apache.beam.sdk.Pipeline;
+import org.apache.beam.sdk.io.jdbc.JdbcIO;
 import org.apache.beam.sdk.io.kafka.KafkaIO;
 import org.apache.beam.sdk.transforms.Count;
 import org.apache.beam.sdk.transforms.DoFn;
@@ -11,6 +12,8 @@ import org.apache.beam.sdk.transforms.windowing.Window;
 import org.apache.beam.sdk.values.KV;
 import org.apache.kafka.common.serialization.LongDeserializer;
 import org.joda.time.Duration;
+
+import java.sql.PreparedStatement;
 
 public class IotKafkaEventPipeline {
     public static void main(String[] args) {
@@ -33,6 +36,17 @@ public class IotKafkaEventPipeline {
                     }
                 }))
                 .apply(Count.perElement())
+                .apply(JdbcIO.<KV<String, Long>write().withDataSourceConfiguration(JdbcIO.DataSourceConfiguration
+                        .create("com.mysql.jdbc.Driver", "jdbc:mysql://127.0.0.1:3306/beam?useSSL=false")
+                        .withUsername("root").withPassword("root"))
+                        .withStatement("insert into event values(?,?)")
+                        .withPreparedStatementSetter(new JdbcIO.PreparedStatementSetter<KV<String, Long>>() {
+                            @Override
+                            public void setParameters(KV<String, Long> element, PreparedStatement preparedStatement) throws Exception {
+                                preparedStatement.setString(1, element.getKey());
+                                preparedStatement.setLong(2, element.getValue());
+                            }
+                        }))
                 .apply(ParDo.of(new DoFn<KV<String, Long>, Void>() {
                    @ProcessElement
                    public void processElement(ProcessContext c){
